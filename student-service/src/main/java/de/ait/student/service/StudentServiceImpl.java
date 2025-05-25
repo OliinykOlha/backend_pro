@@ -7,18 +7,21 @@ import de.ait.student.dto.StudentUpdateDto;
 import de.ait.student.dto.exeptions.StudentNotFoundException;
 import de.ait.student.model.Student;
 import de.ait.student.repository.StudentRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Set;
 import java.util.stream.StreamSupport;
 
-@Component
+@Service
+@RequiredArgsConstructor
 public class StudentServiceImpl implements StudentService {
-    @Autowired
-    private StudentRepository repository;
+
+    private final StudentRepository repository;
     @Autowired
     private PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer;
 
@@ -96,7 +99,5 @@ public class StudentServiceImpl implements StudentService {
                 .toList();
     }
 
-    private static StudentDto toDto(Student student) {
-        return new StudentDto(student.getId(), student.getName(), student.getScores());
-    }
+
 }

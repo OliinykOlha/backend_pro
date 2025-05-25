@@ -2,12 +2,13 @@ package de.ait.student.repository;
 
 import de.ait.student.model.Student;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Component
+@Repository
 public class StudentRepositoryImpl implements StudentRepository {
     private Map<Long, Student> studentMap = new ConcurrentHashMap<>();
 
