@@ -26,9 +26,10 @@ public class StudentServiceImpl implements StudentService {
     private PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer;
 
 
+
     @Override
     public Boolean addStudent(StudentAddDto studentAddDto) {
-        if (repository.findById(studentAddDto.getId()).isPresent()) {
+        if (repository.existsById(studentAddDto.getId())) {
             return false;
         }
         Student student = new Student(studentAddDto.getId(), studentAddDto.getName(), studentAddDto.getPassword());
@@ -48,7 +49,7 @@ public class StudentServiceImpl implements StudentService {
         if (student == null) {
             throw new StudentNotFoundException();
         }
-        repository.deleteBId(id);
+        repository.deleteById(id);
         return new StudentDto(student.getId(), student.getName(), student.getScores());
     }
 
@@ -65,19 +66,22 @@ public class StudentServiceImpl implements StudentService {
             student.setPassword(studentUpdateDto.getPassword());
         }
 
+        repository.save(student);
         return new StudentAddDto(student.getId(), student.getName(), student.getPassword());
     }
 
     @Override
     public Boolean addScore(Long id, ScoreDto scoreDto) {
         Student student = repository.findById(id).orElse(null);
-        return student.addScore(scoreDto.getExamName(), scoreDto.getScore());
+        boolean result = student.addScore(scoreDto.getExamName(), scoreDto.getScore());
+        repository.save(student);
+        return result;
 
     }
 
     @Override
     public List<StudentDto> getStudentsByName(String name) {
-        return StreamSupport.stream(repository.findAll().spliterator(), false)
+        return  repository.findByNameIgnoreCase(name)
                 .filter(s -> name.equalsIgnoreCase(s.getName()))
                 .map(s -> new StudentDto(s.getId(), s.getName(), s.getScores()))
                 .toList();
@@ -85,16 +89,12 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public Long getQuantity(Set<String> names) {
-        return StreamSupport.stream(repository.findAll().spliterator(), false)
-                .map(s-> names.contains(s.getName()))
-                .count();
-
+        return repository.countByNameInIgnoreCase(names);
     }
 
     @Override
     public List<StudentDto> getStudent(String exam, Integer minScore) {
-        return StreamSupport.stream(repository.findAll().spliterator(), false)
-                .filter(s -> s.getScores().containsKey(exam) && s.getScores().get(exam) > minScore )
+        return repository.findByExamAndScoresGreaterThan(exam, minScore)
                 .map(s -> new StudentDto(s.getId(), s.getName(), s.getScores()))
                 .toList();
     }
