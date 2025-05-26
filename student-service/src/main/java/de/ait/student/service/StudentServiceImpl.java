@@ -8,22 +8,22 @@ import de.ait.student.dto.exeptions.StudentNotFoundException;
 import de.ait.student.model.Student;
 import de.ait.student.repository.StudentRepository;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.StreamSupport;
+
 
 @Service
 @RequiredArgsConstructor
 public class StudentServiceImpl implements StudentService {
 
     private final StudentRepository repository;
-    @Autowired
-    private PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer;
+    private ModelMapper modelMapper;
+
 
 
 
@@ -32,7 +32,7 @@ public class StudentServiceImpl implements StudentService {
         if (repository.existsById(studentAddDto.getId())) {
             return false;
         }
-        Student student = new Student(studentAddDto.getId(), studentAddDto.getName(), studentAddDto.getPassword());
+        Student student = modelMapper.map(studentAddDto, Student.class);
         repository.save(student);
         return true;
     }
@@ -40,7 +40,7 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public StudentDto findStudent(Long id) {
         Student student = repository.findById(id).orElseThrow(StudentNotFoundException::new);
-        return new StudentDto(student.getId(), student.getName(), student.getScores());
+        return modelMapper.map(student, StudentDto.class);
     }
 
     @Override
@@ -50,7 +50,7 @@ public class StudentServiceImpl implements StudentService {
             throw new StudentNotFoundException();
         }
         repository.deleteById(id);
-        return new StudentDto(student.getId(), student.getName(), student.getScores());
+        return modelMapper.map(student, StudentDto.class);
     }
 
     @Override
@@ -67,7 +67,7 @@ public class StudentServiceImpl implements StudentService {
         }
 
         repository.save(student);
-        return new StudentAddDto(student.getId(), student.getName(), student.getPassword());
+        return modelMapper.map(student, StudentAddDto.class);
     }
 
     @Override
@@ -82,8 +82,7 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public List<StudentDto> getStudentsByName(String name) {
         return  repository.findByNameIgnoreCase(name)
-                .filter(s -> name.equalsIgnoreCase(s.getName()))
-                .map(s -> new StudentDto(s.getId(), s.getName(), s.getScores()))
+                .map(s -> modelMapper.map(s, StudentDto.class))
                 .toList();
     }
 
@@ -95,7 +94,7 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public List<StudentDto> getStudent(String exam, Integer minScore) {
         return repository.findByExamAndScoresGreaterThan(exam, minScore)
-                .map(s -> new StudentDto(s.getId(), s.getName(), s.getScores()))
+                .map(s -> modelMapper.map(s, StudentDto.class))
                 .toList();
     }
 
