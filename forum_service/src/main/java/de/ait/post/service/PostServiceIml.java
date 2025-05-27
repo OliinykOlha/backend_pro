@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.io.NotActiveException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -56,14 +57,10 @@ public class PostServiceIml implements PostService {
 
     @Override
     public PostDto addComment(String id, String author, NewCommentDto newCommentDto) {
-        Post post = postRepository.findByIdAndAuthorIgnoreCase(id, author);
-        if(post == null) {
-            throw new PostNotFoundException();
-
-        }
-        Comment comment = modelMapper.map(newCommentDto, Comment.class);
+        Post post = postRepository.findById(id).orElseThrow(PostNotFoundException::new);
+        Comment comment = new Comment(author, newCommentDto.getMessage());
         post.addComment(comment);
-        postRepository.save(post);
+        post = postRepository.save(post);
         return modelMapper.map(post, PostDto.class);
     }
 
@@ -75,14 +72,14 @@ public class PostServiceIml implements PostService {
     }
 
     @Override
-    public Iterable<PostDto> findPostsByTag(List<String> tags) {
-        return postRepository.findByTagsIn(tags)
+    public Iterable<PostDto> findPostsByTag(List<String> tag) {
+        return postRepository.findPostsByTagsInIgnoreCase(tag)
                 .map(p->modelMapper.map(p, PostDto.class))
                 .toList();
     }
 
     @Override
-    public Iterable<PostDto> findPostsByPeriod(LocalDateTime localDateFrom, LocalDateTime localDateTo) {
+    public Iterable<PostDto> findPostsByPeriod(LocalDate localDateFrom, LocalDate localDateTo) {
         List<Post> posts = postRepository.findByDateCreatedBetween(localDateFrom, localDateTo);
 
         return posts.stream()

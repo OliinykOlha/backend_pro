@@ -56,7 +56,7 @@ public class PostController {
     }
 
 @GetMapping("posts/period")
-    public Iterable<PostDto> findPostsByPeriod(@RequestParam ("dateFrom") LocalDateTime localDateFrom, @RequestParam ("dateTo") LocalDateTime localDateTo) {
+    public Iterable<PostDto> findPostsByPeriod(@RequestParam ("dateFrom") LocalDate localDateFrom, @RequestParam ("dateTo") LocalDate localDateTo) {
         return postService.findPostsByPeriod(localDateFrom, localDateTo);
     }
 
