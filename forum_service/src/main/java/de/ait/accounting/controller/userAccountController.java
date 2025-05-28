@@ -25,7 +25,6 @@ public class userAccountController {
 
     @PostMapping("/login")
     public UserDto login(Principal principal) {
-        //FixMe
         return userAccountService.getUser(principal.getName());
     }
 
@@ -51,8 +50,7 @@ public class userAccountController {
 
     @PatchMapping("/password")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void changePassword(Principal principal, @RequestHeader("X_Password") String newPassword) {
-       //FixMe
+    public void changePassword(Principal principal, @RequestHeader("X-Password") String newPassword) {
         userAccountService.changePassword(principal.getName(), newPassword);
     }
 
