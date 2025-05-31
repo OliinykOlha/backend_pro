@@ -2,18 +2,22 @@ package de.ait.person.service;
 
 import de.ait.person.dao.PersonRepository;
 import de.ait.person.dto.AddressDto;
+import de.ait.person.dto.ChildDto;
 import de.ait.person.dto.CityPopulationDto;
 import de.ait.person.dto.PersonDto;
 import de.ait.person.dto.exception.ConflictException;
+import de.ait.person.dto.exception.EmployeeDto;
 import de.ait.person.dto.exception.NotFoundException;
 import de.ait.person.model.Address;
 import de.ait.person.model.Child;
 import de.ait.person.model.Employee;
 import de.ait.person.model.Person;
+import org.modelmapper.ModelMapper;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDate;
 
 @Service
@@ -21,6 +25,7 @@ import java.time.LocalDate;
 public class PersonServiceImpl implements PersonService, CommandLineRunner {
     private final PersonRepository personRepository;
     private final PersonModelDtoMapper mapper;
+    private final ModelMapper modelMapper;
 
     @Transactional
     @Override
@@ -28,13 +33,13 @@ public class PersonServiceImpl implements PersonService, CommandLineRunner {
         if (personRepository.existsById(personDto.getId())) {
             throw new ConflictException("Person with " + personDto.getId() + " already exists.");
         }
-       personRepository.save(mapper.fromDto(personDto));
+        personRepository.save(mapper.fromDto(personDto));
     }
 
     @Override
     public PersonDto getPersonById(Integer id) {
         Person person = personRepository.findById(id).orElseThrow(NotFoundException::new);
-       return mapper.toDto(person);
+        return mapper.toDto(person);
     }
 
     @Transactional
@@ -94,6 +99,19 @@ public class PersonServiceImpl implements PersonService, CommandLineRunner {
     public Iterable<CityPopulationDto> getPopulation() {
         return personRepository.getCitiesPopulation();
     }
+
+    @Override
+    public EmployeeDto[] findEmployeesBySalary(int min, int max) {
+         Employee[] employees = personRepository.getEmployeesBySalaryBetween(min, max);
+        return modelMapper.map(employees, EmployeeDto[].class);
+    }
+
+    @Override
+    public ChildDto[] findAllChildren() {
+        Child[] children = personRepository.getChildrenBy();
+        return modelMapper.map(children, ChildDto[].class);
+    }
+
 
     @Override
     public void run(String... args) throws Exception {

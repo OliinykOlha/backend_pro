@@ -2,9 +2,12 @@ package de.ait.person.controller;
 
 
 import de.ait.person.dto.AddressDto;
+import de.ait.person.dto.ChildDto;
 import de.ait.person.dto.CityPopulationDto;
 import de.ait.person.dto.PersonDto;
+import de.ait.person.dto.exception.EmployeeDto;
 import de.ait.person.service.PersonService;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -60,6 +63,17 @@ public class PersonController {
 
     @GetMapping("/population/city")
     public Iterable<CityPopulationDto> getPopulation() {
+
         return personService.getPopulation();
     }
+
+    @GetMapping("/salary/{min}/{max}")
+    public EmployeeDto[] findEmployeesBySalary(@PathVariable Integer min, @PathVariable Integer max) {
+        return personService.findEmployeesBySalary(min, max);
+    }
+
+    @GetMapping("/children")
+   public ChildDto[] findAllChildren() {
+      return personService.findAllChildren();
+   }
 }

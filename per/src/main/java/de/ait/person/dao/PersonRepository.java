@@ -1,13 +1,14 @@
 package de.ait.person.dao;
 
 import de.ait.person.dto.CityPopulationDto;
+import de.ait.person.model.Child;
+import de.ait.person.model.Employee;
 import de.ait.person.model.Person;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Stream;
 
 public interface PersonRepository extends JpaRepository<Person, Integer> {
@@ -22,5 +23,7 @@ public interface PersonRepository extends JpaRepository<Person, Integer> {
             "group by p.address.city order by count (p) desc")
     List<CityPopulationDto> getCitiesPopulation();
 
+   Child[] getChildrenBy();
+   Employee[] getEmployeesBySalaryBetween(int min, int max);
 
 }
