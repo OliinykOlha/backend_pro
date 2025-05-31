@@ -6,43 +6,42 @@ import de.ait.person.dto.CityPopulationDto;
 import de.ait.person.dto.PersonDto;
 import de.ait.person.dto.exception.ConflictException;
 import de.ait.person.dto.exception.NotFoundException;
+import de.ait.person.model.Address;
+import de.ait.person.model.Child;
+import de.ait.person.model.Employee;
 import de.ait.person.model.Person;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
-import java.util.Set;
-
-
 
 @Service
 @RequiredArgsConstructor
-public class PersonServiceImpl implements PersonService{
+public class PersonServiceImpl implements PersonService, CommandLineRunner {
     private final PersonRepository personRepository;
-    private final ModelMapper modelMapper;
+    private final PersonModelDtoMapper mapper;
 
     @Transactional
     @Override
     public void addPerson(PersonDto personDto) {
-        if(personRepository.existsById(personDto.getId())){
+        if (personRepository.existsById(personDto.getId())) {
             throw new ConflictException("Person with " + personDto.getId() + " already exists.");
         }
-        personRepository.save(modelMapper.map(personDto, Person.class));
+       personRepository.save(mapper.fromDto(personDto));
     }
 
     @Override
     public PersonDto getPersonById(Integer id) {
         Person person = personRepository.findById(id).orElseThrow(NotFoundException::new);
-        return modelMapper.map(person, PersonDto.class);
+       return mapper.toDto(person);
     }
 
     @Transactional
     @Override
     public PersonDto deletePerson(Integer id) {
         Person person = personRepository.getPersonById(id);
-        return modelMapper.map(person, PersonDto.class);
+        return mapper.toDto(person);
     }
 
     @Transactional
@@ -50,7 +49,7 @@ public class PersonServiceImpl implements PersonService{
     public PersonDto updateByName(Integer id, String name) {
         Person person = personRepository.findById(id).orElseThrow(NotFoundException::new);
         person.setName(name);
-        return modelMapper.map(person, PersonDto.class);
+        return mapper.toDto(person);
     }
 
     @Transactional
@@ -62,14 +61,14 @@ public class PersonServiceImpl implements PersonService{
         int building = addressDto.getBuilding();
         person.updateAddress(city, street, building);
         personRepository.save(person);
-        return modelMapper.map(person, PersonDto.class);
+        return mapper.toDto(person);
     }
 
     @Transactional(readOnly = true)
     @Override
     public PersonDto[] getPersonsByCity(String city) {
-       return personRepository.findByAddressCityIgnoreCase(city)
-                .map(person -> modelMapper.map(person, PersonDto.class))
+        return personRepository.findByAddressCityIgnoreCase(city)
+                .map(person -> mapper.toDto(person))
                 .toArray(PersonDto[]::new);
     }
 
@@ -79,7 +78,7 @@ public class PersonServiceImpl implements PersonService{
         LocalDate from = LocalDate.now().minusYears(minAge);
         LocalDate to = LocalDate.now().minusYears(maxAge);
         return personRepository.findByBirthDateBetween(from, to)
-                .map(person -> modelMapper.map(person, PersonDto.class))
+                .map(mapper::toDto)
                 .toArray(PersonDto[]::new);
     }
 
@@ -87,12 +86,27 @@ public class PersonServiceImpl implements PersonService{
     @Override
     public PersonDto[] getPersonByName(String name) {
         return personRepository.findByNameIgnoreCase(name)
-                .map(person -> modelMapper.map(person, PersonDto.class))
+                .map(mapper::toDto)
                 .toArray(PersonDto[]::new);
     }
 
     @Override
     public Iterable<CityPopulationDto> getPopulation() {
         return personRepository.getCitiesPopulation();
+    }
+
+    @Override
+    public void run(String... args) throws Exception {
+        if (personRepository.count() == 0) {
+            Person person = new Person(1000, "Jack", LocalDate.of(1980, 05, 11),
+                    new Address("Berlin", "Sorbenstrasse", 23));
+            Child child = new Child(2000, "Jane", LocalDate.of(2021, 04, 10),
+                    new Address("Menden", "Berlinerstrasse", 23), "Kita");
+            Employee employee = new Employee(3000, "Mary", LocalDate.of(1992, 12, 1),
+                    new Address("Hamburg", "Rosenweg", 34), "Google", 80000);
+            personRepository.save(person);
+            personRepository.save(child);
+            personRepository.save(employee);
+        }
     }
 }
