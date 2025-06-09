@@ -23,7 +23,7 @@ public class userAccountController {
         return userAccountService.registerUser(userRegisterDto);
     }
 
-    @PostMapping("/login")
+  @PostMapping("/login")
     public UserDto login(Principal principal) {
         return userAccountService.getUser(principal.getName());
     }
